@@ -147,27 +147,53 @@ rule concat_files:
     shell:
         "cat {input} >> {output}"
 
-rule bowtie2_mapping:
-    # Mapping of trimmed fastq to reference using bowtie2 and sorting output using samtools.
-    output:
-        bam = "{dir}/mapped.sorted.bam"
-    input:
-        r1_fastq = "{dir}/trimmed-c.1.fastq.gz",
-        r2_fastq = "{dir}/trimmed-c.2.fastq.gz"
-    threads: 20
-    params:
-        reference = config["bowtie2_reference"]
-    log: "{dir}/bowtie2_mapping.log"
-    shell:
-        " (bowtie2 "
-        "    -1 {input.r1_fastq} "
-        "    -2 {input.r2_fastq} "
-        "    -x {params.reference} "
-        "    --maxins 2000 "
-        "    -p {threads} | "
-        "    samtools sort  - "
-        "        -@ {threads} "
-        "        -O BAM > {output.bam}) 2> {log}"
+if config["mapping"] == "bowtie2":
+    rule bowtie2_mapping:
+        # Mapping of trimmed fastq to reference using bowtie2 and sorting output using samtools.
+        output:
+            bam = "{dir}/mapped.sorted.bam"
+        input:
+            r1_fastq = "{dir}/trimmed-c.1.fastq.gz",
+            r2_fastq = "{dir}/trimmed-c.2.fastq.gz"
+        threads: 20
+        params:
+            reference = config["bowtie2_reference"]
+        log: "{dir}/bowtie2_mapping.log"
+        shell:
+            " (bowtie2 "
+            "    -1 {input.r1_fastq} "
+            "    -2 {input.r2_fastq} "
+            "    -x {params.reference} "
+            "    --maxins 2000 "
+            "    -p {threads} | "
+            "    samtools sort  - "
+            "        -@ {threads} "
+            "        -O BAM > {output.bam}) 2> {log}"
+elif config["mapping"] == "bwa-mem":
+    rule bwa_mem_mapping:
+        # Mapping of trimmed fastq to reference using BWA-MEM and sorting output using samtools.
+        # Marking secondary hits with -M to comply with Picard
+        output:
+            bam = "{dir}/mapped.sorted.bam"
+        input:
+            r1_fastq = "{dir}/trimmed-c.1.fastq.gz",
+            r2_fastq = "{dir}/trimmed-c.2.fastq.gz"
+        threads: 20
+        params:
+            reference = config["bwa_mem_reference"]
+        log: "{dir}/bwa_mem_mapping.log"
+        shell:
+            """
+            bwa mem \
+                -M \
+                -t {threads} \
+                {params.reference} \
+                {input.r1_fastq} \
+                {input.r2_fastq}  2> {log} | \
+            samtools sort  - \
+                -@ {threads} \
+                -O BAM > {output.bam}
+            """
 
 rule tagbam:
     # Add barcode information to bam file using custom script

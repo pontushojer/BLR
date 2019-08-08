@@ -21,7 +21,15 @@ properties:
     type: string
     description: Path to bowtie2 reference for mapping
     default: .
+  bwa_mem_reference:
+    type: string
+    description: Path to bwa mem reference for mapping
+    default: .
   picard_command:
     type: string
     description: Picard command to be used.
     default: picard
+  mapping:
+    type: string
+    description: Which mapping tool to use.
+    default: bowtie2
