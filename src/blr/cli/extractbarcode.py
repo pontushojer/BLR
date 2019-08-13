@@ -42,8 +42,8 @@ def main(args):
         name_and_pos_r2, read_and_index_r2 = read2.name.split(maxsplit=1)
 
         # Save header to read instances
-        read1.name = name_and_pos_r1 + '_' + bc_seq + ' ' + read_and_index_r1
-        read2.name = name_and_pos_r2 + '_' + bc_seq + ' ' + read_and_index_r2
+        read1.name = name_and_pos_r1 + args.separator + bc_seq + ' ' + read_and_index_r1
+        read2.name = name_and_pos_r2 + args.separator + bc_seq + ' ' + read_and_index_r2
 
         # Write to out
         writer.write(read1, read2)
@@ -70,3 +70,5 @@ def add_arguments(parser):
     parser.add_argument("-o2", "--output2", default=None, metavar='<OUTPUT FASTQ2>',
                         help="Output .fastq file name for read2. If not specified but -o1 given the result is written"
                              " as interleaved fastq to o1.")
+    parser.add_argument("-s", "--separator", metavar="<STRING>", type=str, default="_",
+                        help="Barcode sequence separator in read name. DEFAULT: '_'")
