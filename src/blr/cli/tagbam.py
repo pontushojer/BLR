@@ -25,7 +25,7 @@ def main(args):
             pysam.AlignmentFile(args.output_tagged_bam, 'wb', template=infile) as out:
 
         for read in tqdm(infile.fetch(until_eof=True), desc="Reading .bam"):
-            read_bc = read.query_name.split()[0].split('_')[-1]
+            read_bc = read.query_name.split()[0].split(args.separator)[-1]
 
             # Fetch barcode cluster ID based on barcode sequence
             if read_bc not in cluster_dict:
@@ -80,4 +80,6 @@ def add_arguments(parser):
     parser.add_argument("-bc", "--barcode-cluster-tag", metavar="<STRING>", type=str, default="BX",
                         help="Bam file tag where barcode cluster id is stored. 10x genomics longranger output "
                              "uses 'BX' for their error corrected barcodes. DEFAULT: BX")
+    parser.add_argument("-s", "--separator", metavar="<STRING>", type=str, default="_",
+                        help="Barcode sequence separator in read name. DEFAULT: '_'")
 
