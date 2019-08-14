@@ -13,10 +13,16 @@ indexes = sorted(["".join(tuple) for tuple in itertools.product("ATCG", repeat=c
 include: "rules/trim.smk"
 
 rule compress:
-    output: "{dir}/{sample}.fastq.gz"
-    input: "{dir}/{sample}.fastq"
+    output: "{dir}/{sample}.final.fastq.gz"
+    input: "{dir}/{sample}.final.fastq"
     shell:
         "pigz < {input} > {output}"
+
+rule decompress:
+    output: "{dir}/trimmed-c.{read,\d+}.fastq"
+    input: "{dir}/trimmed-c.{read,\d+}.fastq.gz"
+    shell:
+        "pigz -d -c {input} > {output}"
 
 # If the number of index nucleotide is 0 only on file will be created.
 if config["index_nucleotides"] == 0:
@@ -81,6 +87,17 @@ rule concat_files:
     shell:
         "cat {input} > {output}"
 
+rule sort_fastq:
+    # Sort fastq files for ema alignment.
+    output:
+        fastq = "{dir}/trimmed-c.{read}.sort.fastq"
+    input:
+        fastq = "{dir}/trimmed-c.{read,\d+}.fastq"
+    shell:
+        "cut -d' ' -f 1 {input.fastq} | paste - - - - | sort -k1,1 | "
+        "tr '\t' '\n' > {output.fastq}"
+
+
 if config["mapping"] == "bowtie2":
     rule bowtie2_mapping:
         # Mapping of trimmed fastq to reference using bowtie2 and sorting output using samtools.
@@ -128,6 +145,27 @@ elif config["mapping"] == "bwa-mem":
                 -@ {threads} \
                 -O BAM > {output.bam}
             """
+elif config["mapping"] == "ema":
+    rule ema_mapping:
+        # Mapping with EMA (https://github.com/arshajii/ema)
+        output:
+            bam = "{dir}/mapped.sorted.bam"
+        input:
+            r1_fastq = "{dir}/trimmed-c.1.sort.fastq",
+            r2_fastq = "{dir}/trimmed-c.2.sort.fastq"
+        threads: 20
+        params:
+            reference = config["bwa_mem_reference"]
+        log: "{dir}/ema_mapping.log"
+        shell:
+            "ema align "
+            " -1 {input.r1_fastq} "
+            " -2 {input.r2_fastq} "
+            " -r {params.reference}"
+            " -t {threads} 2> {log} | "
+            "samtools sort -"
+            " -@ {threads} "
+            " -O BAM > {output.bam} "
 
 rule tagbam:
     # Add barcode information to bam file using custom script
