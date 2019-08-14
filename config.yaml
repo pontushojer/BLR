@@ -6,3 +6,4 @@ bowtie2_reference: .   #Fill in /path/to/bowtie2_reference
 bwa_mem_reference: .   #Fill in /path/to/bwa_mem_reference
 picard_command: picard
 mapping: bowtie2 # Which mapping tool to use. Options are: bowtie2 and bwa-mem
+barcode_separator: _ # Which barcode separator to used. For ema, use ':'

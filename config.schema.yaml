@@ -33,3 +33,7 @@ properties:
     type: string
     description: Which mapping tool to use.
     default: bowtie2
+  barcode_separator:
+    type: string
+    description: Barcode separator for barcode sequence in read name.
+    default: _

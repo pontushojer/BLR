@@ -142,6 +142,7 @@ rule tagbam:
         " {input.bam} "
         " {input.clstr}"
         " {output.bam}"
+        " -s {config[barcode_separator]}"
         " -bc {config[cluster_tag]}) 2> {log} "
 
 rule duplicates_removal:

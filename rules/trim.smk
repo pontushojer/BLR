@@ -40,6 +40,7 @@ rule extract_barcodes_pipe:
         "blr extractbarcode"
         " {input.interleaved_fastq}"
         " -o1 {output.interleaved_fastq}"
+        " -s {config[barcode_separator]}"
 
 rule final_trim_pipe:
     # Cut H1691' + TES sequence from 5' of R1. H1691'=CATGACCTCTTGGAACTGTC, TES=AGATGTGTATAAGAGACAG.
