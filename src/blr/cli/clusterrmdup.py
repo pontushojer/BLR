@@ -144,6 +144,7 @@ def main(args):
     out = pysam.AlignmentFile(args.output_bam, 'wb', template=infile)
     for read in infile.fetch(until_eof=True):
         try:previous_barcode_id = int(read.get_tag(args.barcode_cluster_tag))
+        except ValueError: previous_barcode_id = read.get_tag(args.barcode_cluster_tag) # Keep as string
         except KeyError:
             # If read barcode in merge dict, change tag and header to compensate.
             if not previous_barcode_id in barcode_ID_merge_dict:
